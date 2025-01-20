@@ -12,7 +12,7 @@ void add(int n, float* x, float* y)
         y[i] = x[i] + y[i];
 }
 
-int main(void)
+int _main(void)
 {
     FILE* fp = fopen("../data/gpt-2.safetensors", "r");
     if (fp == NULL) {
