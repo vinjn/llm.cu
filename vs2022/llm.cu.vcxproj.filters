@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <CudaCompile Include="app.cu">
+    <CudaCompile Include="../app.cu">
       <Filter>Source Files</Filter>
     </CudaCompile>
   </ItemGroup>

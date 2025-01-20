@@ -1,5 +1,6 @@
 #include <iostream>
 #include <cuda_runtime.h>
+#include <stdio.h>
 
 // Kernel function to add the elements of two arrays
 __global__
@@ -13,6 +14,21 @@ void add(int n, float* x, float* y)
 
 int main(void)
 {
+    FILE* fp = fopen("../data/gpt-2.safetensors", "r");
+    if (fp == NULL) {
+        printf("Error opening file!\n");
+        exit(1);
+    }
+
+    // Read the first 10 bytes of the file
+    char buffer[10];
+    size_t bytesRead = fread(buffer, 1, 10, fp);
+    if (bytesRead < 10) {
+        printf("Error reading file!\n");
+        exit(1);
+    }
+
+
     int N = 1 << 20; // 1M elements
 
     // Allocate Unified Memory ¨C accessible from CPU or GPU
