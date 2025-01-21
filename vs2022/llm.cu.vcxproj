@@ -57,6 +57,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard_C>stdc11</LanguageStandard_C>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -71,6 +72,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard_C>stdc11</LanguageStandard_C>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -84,12 +86,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\3rdparty\cJSON\cJSON.c" />
-    <ClCompile Include="..\3rdparty\mmap-windows\mmap-windows.c" />
+    <ClCompile Include="..\3rdparty\mman-win32\mman.c" />
     <ClCompile Include="..\app.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\3rdparty\cJSON\cJSON.h" />
-    <ClInclude Include="..\3rdparty\mmap-windows\mmap-windows.h" />
+    <ClInclude Include="..\3rdparty\mman-win32\mman.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
