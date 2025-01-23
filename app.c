@@ -114,10 +114,10 @@ int main(int argc, char* argv[]) {
     }
     printf("......\n\n");
 
-    cJSON* tensor_field = cJSON_GetObjectItem(safe_tensor.header_json, "tensor");
-    cJSON* data_type = cJSON_GetObjectItem(tensor_field, "data_type");
-    cJSON* shape = cJSON_GetObjectItem(tensor_field, "shape");
-    cJSON* offsets = cJSON_GetObjectItem(tensor_field, "offsets");
+    cJSON* __metadata__ = cJSON_GetObjectItem(safe_tensor.header_json, "__metadata__");
+    cJSON* format = cJSON_GetObjectItem(__metadata__, "format");
+    char* format_value = cJSON_GetStringValue(format);
+    printf("__metadata__.Format: %s\n", format_value);
 
 
     // Convert the cJSON object to a JSON string
