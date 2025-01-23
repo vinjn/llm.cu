@@ -29,12 +29,18 @@
     <ClCompile Include="..\3rdparty\mman-win32\mman.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\3rdparty\getopt-for-windows\getopt.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\3rdparty\cJSON\cJSON.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="..\3rdparty\mman-win32\mman.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rdparty\getopt-for-windows\getopt.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>

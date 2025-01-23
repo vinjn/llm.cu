@@ -4,10 +4,13 @@
 #include <stdlib.h>
 #include "3rdparty/cJSON/cJSON.h"
 #include "3rdparty/mman-win32/mman.h"
+#include "3rdparty/getopt-for-windows/getopt.h"
 #include <errno.h>
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <io.h>
+
+
 
 // https://huggingface.co/docs/safetensors/en/index
 struct SafeTensor {
@@ -24,32 +27,52 @@ struct TensorField {
     int offsets[2];
 };
 
-const char* filepath = "../data/model.safetensors";
+char* model = "../data/model.safetensors";
+int debug = 0;
 
-int main(int argc, char* argv[])
-{
+int parse(int argc, char* argv[]) {
+
+    // Define long options
+    static struct option long_options[] = {
+        {"model", required_argument, NULL, 'm'},  // Long option for file path
+        {"debug", no_argument, NULL, 'd'}, // Long option for number
+        {0, 0, 0, 0}                            // End of options
+    };
+
+    int opt;
+    int option_index = 0;
+
+    // Parse command-line options
+    while ((opt = getopt_long(argc, argv, "m:d", long_options, &option_index)) != -1) {
+        switch (opt) {
+        case 'm':
+            model = optarg; // Get the file path
+            break;
+        case 'd':
+            debug = 1; // Convert the argument to an integer
+            break;
+        default: /* '?' */
+            fprintf(stderr, "Usage: %s -m <model> [-d]\n", argv[0]);
+            fprintf(stderr, "       %s --model <model> [--dump]\n", argv[0]);
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    return 0;
+}
+
+int main(int argc, char* argv[]) {
+    if (parse(argc, argv))
+        return 1;
+
     struct SafeTensor safe_tensor = { 0 };
-
-#if 0
-    FILE* fp = fopen(filepath, "r");
-    if (fp == NULL) {
-        printf("Error opening file!\n");
-        exit(1);
-    }
-
-
-    // Read the first 10 bytes of the file
-    size_t bytesRead = fread(&safe_tensor.header_size, 1, sizeof(safe_tensor.header_size), fp);
-    if (bytesRead < sizeof(safe_tensor.header_size)) {
-        printf("Error reading file!\n");
-        exit(1);
-    }
-#else
 
 #define _S_IREAD  0x0100 // Read permission, owner
 
     int mode = _S_IREAD;
-    int fd = open(filepath, O_RDONLY, mode);
+    int fd = open(model, O_RDONLY, mode);
+
+    printf("Opening file: %s\n", model);
 
     struct stat file_stat;
     if (fstat(fd, &file_stat) == -1) {
@@ -68,6 +91,7 @@ int main(int argc, char* argv[])
         exit(EXIT_FAILURE);
     }
 
+    printf("File size: %zu\n", file_size);
     // parsing
     safe_tensor.header_size = *(uint64_t*)mapped_file;
     safe_tensor.header_ptr = (uint8_t*)mapped_file + sizeof(uint64_t);
@@ -80,6 +104,15 @@ int main(int argc, char* argv[])
             fprintf(stderr, "Error before: %s\n", error_ptr);
         }
     }
+
+    printf("Header size: %zu\n", safe_tensor.header_size);
+    // print first 1000 bytes
+    printf("\n\n");
+    uint64_t preview_size = safe_tensor.header_size > 1000 ? 1000 : safe_tensor.header_size;
+    for (int i = 0; i < preview_size; i++) {
+        printf("%c", safe_tensor.header_ptr[i]);
+    }
+    printf("......\n\n");
 
     cJSON* tensor_field = cJSON_GetObjectItem(safe_tensor.header_json, "tensor");
     cJSON* data_type = cJSON_GetObjectItem(tensor_field, "data_type");
@@ -95,21 +128,23 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    // Write the JSON string to a file
-    const char* filename = "output.json";
-    FILE* file = fopen(filename, "w");
-    if (file == NULL) {
-        perror("Error opening file");
-        free(json_string); // Free the JSON string
-        cJSON_Delete(safe_tensor.header_json); // Delete the JSON object
-        return 1;
+    if (debug) {
+        // Write the JSON string to a file
+        const char* filename = "output.json";
+        FILE* file = fopen(filename, "w");
+        if (file == NULL) {
+            perror("Error opening file");
+            free(json_string); // Free the JSON string
+            cJSON_Delete(safe_tensor.header_json); // Delete the JSON object
+            return 1;
+        }
+
+        fprintf(file, "%s\n", json_string); // Write the JSON string to the file
+        fclose(file); // Close the file
+
+        printf("JSON has been written to %s\n", filename);
+
     }
-
-    fprintf(file, "%s\n", json_string); // Write the JSON string to the file
-    fclose(file); // Close the file
-
-    printf("JSON has been written to %s\n", filename);
-
     // Clean up
     free(json_string); // Free the JSON string
     cJSON_Delete(safe_tensor.header_json); // Delete the JSON object
@@ -121,12 +156,6 @@ int main(int argc, char* argv[])
     }
 
     close(fd);
-
-
-
-#endif
-    //cJSON* json = cJSON_ParseWithOpts(safe_tensor.header_jsonstring, NULL, 1);
-
 
     return 0;
 }
