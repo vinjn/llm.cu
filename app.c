@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 #include "3rdparty/cJSON/cJSON.h"
 #include "3rdparty/mman-win32/mman.h"
 #include "3rdparty/getopt-for-windows/getopt.h"
@@ -11,6 +12,19 @@
 #include <io.h>
 
 // https://huggingface.co/docs/safetensors/en/index
+
+struct MetaData
+{
+    char* format;
+};
+
+struct LN_2
+{
+    char* name;
+    int shape[2];
+    int data_offsets[2];
+};
+
 struct SafeTensor
 {
     uint64_t header_size;
@@ -18,12 +32,17 @@ struct SafeTensor
     uint8_t *rest_of_file;
 
     cJSON *header_json;
+
+    struct MetaData metadata;
+
+    struct TensorField* tensor_fields;
 };
 
 struct TensorField
 {
+    char* name;
     char *data_type; // can be F64, F32, F16, BF16, I64, I32, I16, I8, U8, BOOL
-    int *shape;
+    int shapes[4];
     int offsets[2];
 };
 
@@ -63,6 +82,28 @@ int parse(int argc, char *argv[])
 
     return 0;
 }
+
+int compare_numeric_strings(const void* lhs, const void* rhs) {
+    const char* left = lhs;
+    const char* right = rhs;
+
+    // Convert strings to integers for comparison
+    int num_a = atoi(left);
+    int num_b = atoi(right);
+
+    // Compare the numeric values
+    return (num_a > num_b) - (num_a < num_b);
+}
+
+
+
+int compare_TensorField(const void* lhs, const void* rhs) {
+    const struct TensorField* left = lhs;
+    const struct TensorField* right = rhs;
+    
+    return strcmp(left->name, right->name);
+}
+
 
 int main(int argc, char *argv[])
 {
@@ -122,10 +163,58 @@ int main(int argc, char *argv[])
     }
     printf("......\n\n");
 
-    cJSON *__metadata__ = cJSON_GetObjectItem(safe_tensor.header_json, "__metadata__");
-    cJSON *format = cJSON_GetObjectItem(__metadata__, "format");
-    char *format_value = cJSON_GetStringValue(format);
-    printf("__metadata__.Format: %s\n", format_value);
+    int size = cJSON_GetArraySize(safe_tensor.header_json);
+    safe_tensor.tensor_fields = calloc(size - 1, sizeof(struct TensorField));
+    
+    // TODO: there is an potential off-by-one error here, is __metadata__ always the first item?
+
+    for (int i = 0; i < size; i++)
+    {
+        cJSON* item = cJSON_GetArrayItem(safe_tensor.header_json, i);
+        if (strcmp(item->string, "__metadata__") == 0)
+        {
+            cJSON* format = cJSON_GetObjectItem(item, "format");
+            char* format_value = cJSON_GetStringValue(format);
+            printf("__metadata__.Format: %s\n", format_value);
+            safe_tensor.metadata.format = format_value;
+        }
+        else
+        {
+            struct TensorField* tensor_field = &safe_tensor.tensor_fields[i - 1];
+
+            tensor_field->name = item->string;
+
+            cJSON* dtype = cJSON_GetObjectItem(item, "dtype");
+            char* dtype_value = cJSON_GetStringValue(dtype);
+            tensor_field->data_type = dtype_value;
+
+            cJSON* shape = cJSON_GetObjectItem(item, "shape");
+            cJSON* shape_item = NULL;
+            int j = 0;
+            cJSON_ArrayForEach(shape_item, shape)
+            {
+                tensor_field->shapes[j++] = shape_item->valueint;
+            }
+
+            cJSON* offset = cJSON_GetObjectItem(item, "data_offsets");
+            cJSON* offset_item = NULL;
+            j = 0;
+            cJSON_ArrayForEach(offset_item, offset)
+            {
+                tensor_field->offsets[j++] = offset_item->valueint;
+            }
+        }
+    }
+
+    // sort safe_tensor.tensor_fields
+    qsort(safe_tensor.tensor_fields, size - 1, sizeof(struct TensorField), compare_TensorField);
+    for (int i = 0; i < size - 1; i++)
+    {
+        printf("TensorField: %s, shape: [%d, %d, %d, %d], offset: [%d, %d]\n", safe_tensor.tensor_fields[i].name,
+            safe_tensor.tensor_fields[i].shapes[0], safe_tensor.tensor_fields[i].shapes[1],
+            safe_tensor.tensor_fields[i].shapes[2], safe_tensor.tensor_fields[i].shapes[3],
+            safe_tensor.tensor_fields[i].offsets[0], safe_tensor.tensor_fields[i].offsets[1]);
+    }
 
     // Convert the cJSON object to a JSON string
     char *json_string = cJSON_Print(safe_tensor.header_json);
