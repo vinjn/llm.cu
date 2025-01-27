@@ -10,3 +10,10 @@
 - [ ] MLP in C and CUDA
 - [ ] attention layer in C and CUDA
 
+
+# Reference
+
+- https://www.omrimallis.com/posts/understanding-how-llm-inference-works-with-llama-cpp/
+- https://jalammar.github.io/illustrated-transformer/
+- https://dugas.ch/artificial_curiosity/GPT_architecture.html
+
