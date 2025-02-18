@@ -1,6 +1,8 @@
-# Setup
+# Weights
 
-- Download gpt2 weights from  https://huggingface.co/openai-community/gpt2/resolve/main/model.safetensors
+- gpt2 https://huggingface.co/openai-community/gpt2/resolve/main/model.safetensors
+- DeepSeek-R1-Distill-Qwen-1.5B https://huggingface.co/deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B
+- DeepSeek-R1-Distill-Qwen-7B https://huggingface.co/deepseek-ai/DeepSeek-R1-Distill-Qwen-7B
 
 # TODO
 
