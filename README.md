@@ -15,7 +15,17 @@
 
 # Reference
 
-- https://www.omrimallis.com/posts/understanding-how-llm-inference-works-with-llama-cpp/
+## Overview
 - https://jalammar.github.io/illustrated-transformer/
 - https://dugas.ch/artificial_curiosity/GPT_architecture.html
+- [Andrej Karpathy - Let's build GPT: from scratch, in code, spelled out](https://www.youtube.com/watch?v=kCc8FmEb1nY)
+
+## Inferencing
+- https://www.omrimallis.com/posts/understanding-how-llm-inference-works-with-llama-cpp/
+
+## Tokenizer
+
+- [Andrej Karpathy - Let's build the GPT Tokenizer](https://www.youtube.com/watch?v=zduSFxRajkE)
+- [LLM Tokenizers Explained: BPE Encoding, WordPiece and SentencePiece](https://www.youtube.com/watch?v=hL4ZnAWSyuU)
+- https://github.com/openai/tiktoken
 
